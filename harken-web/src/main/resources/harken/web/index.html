@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Harken 谛听 · 运行时脚本控制台</title>
+<script src="assets/theme-boot.js"></script>
+<link rel="stylesheet" href="assets/vendor/codemirror.css">
+<link rel="stylesheet" href="assets/vendor/show-hint.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<!-- ========== 登录 ========== -->
+<section id="login-view" class="login" hidden>
+  <form id="login-form" class="login-card" autocomplete="on" novalidate>
+    <button type="button" class="link theme-btn" data-theme-toggle title="切换浅色 / 深色"></button>
+    <h1 class="login-title">Harken <span class="login-sub">谛听</span></h1>
+    <p class="login-lead">运行时 Groovy 脚本控制台。<br>能回滚、能追溯、AI 只读。</p>
+    <label class="field">
+      <span>用户名</span>
+      <input id="login-user" name="username" type="text" autocomplete="username"
+             spellcheck="false" autocapitalize="off" required>
+    </label>
+    <label class="field">
+      <span>密码</span>
+      <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button type="submit" id="login-submit" class="btn primary wide">登录</button>
+    <p id="login-error" class="login-error" role="alert" hidden></p>
+    <p class="login-foot">账号由应用配置提供；连续失败会被临时锁定。</p>
+  </form>
+</section>
+
+<!-- ========== 控制台 ========== -->
+<div id="console-view" class="app" hidden>
+
+  <header class="topbar">
+    <div class="brand">Harken<span class="brand-sub">谛听</span></div>
+    <div id="chips" class="chips"></div>
+    <div class="who">
+      <span id="who-user" class="who-user"></span>
+      <button type="button" class="link theme-btn" data-theme-toggle title="切换浅色 / 深色"></button>
+      <button type="button" id="btn-logout" class="link">退出</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden>
+    <span id="banner-title" class="banner-title"></span>
+    <span id="banner-body" class="banner-body"></span>
+  </div>
+
+  <main class="body">
+    <section class="work">
+      <div class="toolbar">
+        <label class="tpl" id="tpl-wrap">
+          <span class="tpl-label">模板</span>
+          <select id="tpl-select">
+            <option value="">选一个插入…</option>
+          </select>
+        </label>
+        <span id="lint" class="lint" role="status" aria-live="polite"></span>
+        <span class="grow"></span>
+        <span id="run-state" class="run-state" aria-live="polite"></span>
+        <button type="button" id="btn-dryrun" class="btn primary">
+          试跑<span class="kbd">Ctrl+Enter</span>
+        </button>
+          <button type="button" id="btn-commit" class="btn danger" disabled>
+            提交<span class="kbd">Ctrl+Shift+Enter</span>
+          </button>
+        </div>
+
+        <!-- 受限模式：预置脚本目录，替代自由编辑器。FULL 模式保持 hidden。 -->
+        <div id="catalog-view" class="catalog" hidden>
+          <div class="catalog-head">
+            <span class="catalog-title">预置脚本</span>
+            <span class="grow"></span>
+            <span id="catalog-risk" class="catalog-risk"></span>
+          </div>
+          <ul id="catalog-list" class="catalog-list"></ul>
+          <p id="catalog-empty" class="catalog-empty" hidden>目录里没有可用脚本。</p>
+          <div id="param-panel" class="param-panel" hidden>
+            <div class="param-head">
+              <span id="param-script-name" class="param-script-name"></span>
+              <span id="param-script-risk" class="chip"></span>
+            </div>
+            <p id="param-script-desc" class="param-script-desc"></p>
+            <form id="param-form" class="param-form" autocomplete="off" novalidate></form>
+            <p id="param-help" class="param-help" hidden></p>
+          </div>
+        </div>
+
+        <div class="editor-wrap" id="editor-wrap">
+          <textarea id="editor" spellcheck="false" autocapitalize="off"></textarea>
+        </div>
+
+      <div id="confirm-bar" class="confirm" hidden>
+        <p class="confirm-text">
+          <strong id="confirm-head"></strong>
+          <span id="confirm-body"></span>
+        </p>
+        <div class="confirm-row">
+          <input id="confirm-input" class="confirm-input" type="text" spellcheck="false"
+                 autocapitalize="off" autocomplete="off" placeholder="">
+          <button type="button" id="btn-confirm-commit" class="btn danger">确认提交</button>
+          <button type="button" id="btn-confirm-cancel" class="btn ghost">取消</button>
+        </div>
+      </div>
+
+      <div class="out">
+        <div class="out-head">
+          <span id="out-title" class="out-title">输出</span>
+          <span id="out-meta" class="out-meta"></span>
+          <span class="grow"></span>
+          <button type="button" id="btn-clear" class="link">清空<span class="kbd">Ctrl+K</span></button>
+        </div>
+        <pre id="out" class="out-body" tabindex="0"></pre>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="side-head">
+        <span>最近执行</span>
+        <span class="grow"></span>
+        <button type="button" id="btn-history" class="link">刷新</button>
+      </div>
+      <ol id="history" class="history"></ol>
+      <p id="history-empty" class="history-empty" hidden>
+        还没有执行记录。跑一段脚本，这里会出现它的影响行数与追踪 ID。
+      </p>
+    </aside>
+  </main>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/vendor/codemirror.js"></script>
+<script src="assets/vendor/groovy.js"></script>
+<script src="assets/vendor/matchbrackets.js"></script>
+<script src="assets/vendor/closebrackets.js"></script>
+<script src="assets/vendor/active-line.js"></script>
+<script src="assets/vendor/show-hint.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,827 @@
+/* ==========================================================================
+   Harken 控制台样式
+   设计取向：一屏内看清「我在哪台机器 / 能做什么 / 刚才改了几行」。
+   只有两处使用强色：无事务红色横幅、提交按钮。其余一律低对比度，
+   避免控制台本身抢走注意力 —— 这里的主角是脚本和它的后果。
+   ========================================================================== */
+
+/*
+ * 两套配色（深色默认 / 浅色由 <html data-theme="light"> 触发）。
+ * 切换只改这一个属性，JS 不碰任何具体颜色 —— 颜色只在本文件里定义一次。
+ *
+ * 变量按「用途」而非「组件」分组：同一个 --danger-line 同时给横幅边框、
+ * 确认条边框和 danger 按钮边框，因为它们本来就是同一种线。
+ * color-scheme 是必需的：它决定浏览器原生控件（select 下拉、滚动条、
+ * 自动填充底色）跟哪套走，缺了它浅色主题下会弹出黑色下拉菜单。
+ */
+:root {
+  color-scheme: dark;
+
+  /* 表面 */
+  --bg: #0f1419;
+  --panel: #151b22;
+  --panel-2: #1b232c;
+  --field-bg: #0c1116;
+  --chip-bg: #111820;
+  --hover-bg: #223040;
+  --selected-bg: #14222e;
+  --glow: #16242f;
+  /* 线条 */
+  --line: #263140;
+  --line-soft: #1e2833;
+  /* 文字 */
+  --text: #e6edf3;
+  --muted: #8b98a5;
+  --faint: #5c6b7a;
+  /* 强调 */
+  --accent: #4cc2ff;
+  --accent-bg: #1d4a63;
+  --accent-line: #2b6d8f;
+  --accent-hover: #245b78;
+  --accent-veil: rgba(76, 194, 255, .12);
+  --on-accent: #d7f1ff;
+  /* 危险 */
+  --danger: #ff5d5d;
+  --danger-bg: #3a1618;
+  --danger-line: #7d2b30;
+  --danger-hover: #5d2226;
+  --danger-veil: rgba(255, 93, 93, .22);
+  --on-danger: #ffd5d5;
+  /* 警告 */
+  --warn: #ffb454;
+  --warn-bg: #3a2c14;
+  --warn-line: #6b4a17;
+  --warn-veil: rgba(255, 180, 84, .10);
+  --on-warn: #ffe3b8;
+  /* 成功 */
+  --ok: #4ade80;
+  --ok-line: #24513a;
+  /* 编辑器 */
+  --select-bg: #1d3546;
+  --active-bg: #121a22;
+  /* 语法高亮（取 One Dark 的色相，在 #0c1116 上实测对比度均 >= 4.5:1） */
+  --syn-keyword: #c678dd;
+  --syn-constant: #d19a66;
+  --syn-string: #98c379;
+  --syn-comment: #6b7f90;
+  --syn-property: #56b6c2;
+  --syn-operator: #8b98a5;
+  --syn-meta: #e5c07b;
+
+  --shadow: rgba(0, 0, 0, .45);
+
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+  --ui: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* 浅色：取 GitHub Light 的灰阶 + 加深的强调色。
+   强调色必须比深色主题更深 —— #4cc2ff 在白底上对比度只有 1.9:1，是看不见的。 */
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --panel-2: #eef2f6;
+  --field-bg: #ffffff;
+  --chip-bg: #f3f6f9;
+  --hover-bg: #e8eef5;
+  --selected-bg: #e4eefa;
+  --glow: #e6f0fa;
+
+  --line: #d3dbe4;
+  --line-soft: #e6ebf1;
+
+  --text: #1b2531;
+  --muted: #56636f;
+  /* 最弱文字也要过 AA：10~11px 的时间戳、快捷键提示全靠它。
+     白底上 4.9:1，比 --muted 浅一档但仍然是「能读的浅」。 */
+  --faint: #64707d;
+
+  --accent: #0b62b8;
+  --accent-bg: #dbeafe;
+  --accent-line: #94bde6;
+  --accent-hover: #c5ddf7;
+  --accent-veil: rgba(11, 98, 184, .14);
+  --on-accent: #0a3f73;
+
+  --danger: #c02531;
+  --danger-bg: #fdecec;
+  --danger-line: #e5a8a8;
+  --danger-hover: #f8d7d7;
+  --danger-veil: rgba(192, 37, 49, .12);
+  --on-danger: #8d1620;
+
+  --warn: #8a5a00;
+  --warn-bg: #fff4e2;
+  --warn-line: #e6c890;
+  --warn-veil: rgba(200, 130, 0, .14);
+  --on-warn: #6d4600;
+
+  --ok: #157a4a;
+  --ok-line: #a3d3ba;
+
+  --select-bg: #cfe4f9;
+  --active-bg: #f2f7fc;
+
+  --syn-keyword: #8250df;
+  --syn-constant: #953800;
+  --syn-string: #0a6b3d;
+  --syn-comment: #6e7781;
+  --syn-property: #0b62b8;
+  --syn-operator: #56636f;
+  --syn-meta: #953800;
+
+  --shadow: rgba(20, 32, 48, .12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* hidden 是语义属性，不是装饰：凡是给元素写了 display 的，都要让它继续生效 */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.grow { flex: 1 1 auto; }
+
+/* --------------------------------------------------------------------------
+   通用控件
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s, opacity .12s;
+}
+.btn:hover { background: var(--hover-bg); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+.btn.primary { background: var(--accent-bg); border-color: var(--accent-line); color: var(--on-accent); }
+.btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn.danger { background: var(--danger-bg); border-color: var(--danger-line); color: var(--on-danger); }
+.btn.danger:hover:not(:disabled) { background: var(--danger-hover); }
+.btn.ghost { background: transparent; }
+.btn.wide { width: 100%; justify-content: center; height: 34px; }
+
+.link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.link:hover { color: var(--text); background: var(--panel-2); }
+
+/* 主题切换。图标由 JS 写入（深色时显示 ☀，浅色时显示 ☾），
+   视觉上只是一个字符，但点了能换整屏底色 —— 所以给足 26px 的点击区。 */
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   登录
+   -------------------------------------------------------------------------- */
+
+.login {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1100px 500px at 50% -15%, var(--glow) 0%, transparent 70%),
+    var(--bg);
+}
+
+.login-card {
+  position: relative;      /* 给右上角的主题按钮定位 */
+  width: 100%;
+  max-width: 340px;
+  padding: 28px 26px 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 60px var(--shadow);
+}
+.login-card .theme-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.login-title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.login-sub {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+.login-lead {
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.field { display: block; margin-bottom: 12px; }
+.field > span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .5px;
+}
+.field input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-veil);
+}
+
+.login-error {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--danger-line);
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--on-danger);
+  font-size: 12px;
+}
+.login-foot {
+  margin: 16px 0 0;
+  font-size: 11px;
+  color: var(--faint);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   控制台骨架
+   -------------------------------------------------------------------------- */
+
+/*
+ * 纵向用 flex 而不是 grid，是被一个真实的 bug 逼出来的：
+ * banner 平时是 [hidden]（display:none），而 display:none 的元素不参与
+ * grid 自动排布 —— 于是 .body 被放进第 2 行（auto），第 3 行（1fr）空着，
+ * 整个控制台只占了半屏，剩下半屏是 body 背景色。
+ * flex 容器不会给 display:none 的孩子留位置，这类错位从根上不存在。
+ */
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.brand-sub {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--faint);
+  letter-spacing: 2px;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* 窄屏放不下时横向滚动，而不是把每条 chip 压成一个小圆点。
+     压扁的后果比「需要划一下」严重得多：状态条存在的意义就是能读。 */
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1 1 auto;
+  min-width: 0;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { height: 0; }
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip-key { color: var(--faint); font-size: 10px; letter-spacing: .5px; flex: 0 0 auto; }
+.chip-value {
+  font-family: var(--mono);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip.is-ok { border-color: var(--ok-line); }
+.chip.is-ok .chip-value { color: var(--ok); }
+.chip.is-warn { border-color: var(--warn-line); }
+.chip.is-warn .chip-value { color: var(--warn); }
+.chip.is-danger { border-color: var(--danger-line); background: var(--danger-bg); }
+.chip.is-danger .chip-value { color: var(--danger); }
+.chip.is-muted .chip-value { color: var(--faint); }
+
+.who { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.who-user { font-size: 12px; color: var(--muted); }
+.who-user b { color: var(--text); font-weight: 500; }
+
+/* 无事务 / 只读横幅：刻意没有关闭按钮 */
+.banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--danger-bg);
+  border-bottom: 1px solid var(--danger-line);
+  color: var(--on-danger);
+  font-size: 12px;
+}
+.banner.is-warn { background: var(--warn-bg); border-bottom-color: var(--warn-line); color: var(--on-warn); }
+.banner-title { font-weight: 600; white-space: nowrap; }
+.banner-body { color: inherit; opacity: .92; }
+
+.body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  min-height: 0;
+}
+
+.work {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+}
+
+/* --------------------------------------------------------------------------
+   工具栏
+   -------------------------------------------------------------------------- */
+
+.toolbar {
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--panel);
+}
+
+.tpl { display: inline-flex; align-items: center; gap: 6px; }
+.tpl-label { font-size: 11px; color: var(--faint); }
+.tpl select {
+  height: 26px;
+  max-width: 190px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--field-bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+}
+
+.lint {
+  font-size: 11px;
+  color: var(--faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 42%;
+}
+.lint.is-error { color: var(--danger); }
+.lint.is-ok { color: var(--ok); }
+.lint.is-warn { color: var(--warn); }
+
+.run-state { font-size: 11px; color: var(--muted); }
+.run-state.is-busy { color: var(--accent); }
+
+/* --------------------------------------------------------------------------
+   编辑器
+   -------------------------------------------------------------------------- */
+
+.editor-wrap { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.editor-wrap .CodeMirror {
+  height: 100%;
+  background: var(--field-bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.CodeMirror-gutters {
+  background: var(--field-bg) !important;
+  border-right: 1px solid var(--line-soft) !important;
+}
+.CodeMirror-linenumber { color: var(--faint) !important; }
+
+/* 双轴滚动时两栏交角的小方块。CodeMirror 默认把它写死成白色，
+   深色主题下会闪出一块突兀的白斑（这个 bug 一直存在，只是需要同时出现
+   横向和纵向滚动条才看得见）。 */
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler { background-color: var(--field-bg) !important; }
+.CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
+.CodeMirror-selected { background: var(--select-bg) !important; }
+.CodeMirror-activeline-background { background: var(--active-bg) !important; }
+.CodeMirror-matchingbracket {
+  color: var(--accent) !important;
+  background: var(--accent-veil);
+  outline: 1px solid var(--accent-line);
+}
+
+/*
+ * 语法高亮。必须自己写：CodeMirror 自带的 .cm-s-default 是浅色专用配色
+ * （关键字 #708、注释 #a50），在 #0c1116 上对比度不到 2:1，等于没有高亮。
+ * 选择器带上 .CodeMirror 是为了压过 .cm-s-default 的同名规则（同为 0,2,0，
+ * 靠加载顺序决胜太脆弱，直接提高特异性）。
+ */
+.CodeMirror.cm-s-harken .cm-keyword { color: var(--syn-keyword); }
+.CodeMirror.cm-s-harken .cm-atom,
+.CodeMirror.cm-s-harken .cm-number { color: var(--syn-constant); }
+.CodeMirror.cm-s-harken .cm-string,
+.CodeMirror.cm-s-harken .cm-string-2 { color: var(--syn-string); }
+.CodeMirror.cm-s-harken .cm-comment { color: var(--syn-comment); font-style: italic; }
+.CodeMirror.cm-s-harken .cm-property { color: var(--syn-property); }
+.CodeMirror.cm-s-harken .cm-operator { color: var(--syn-operator); }
+.CodeMirror.cm-s-harken .cm-meta { color: var(--syn-meta); }
+
+/* 语法错误行 / 危险 API 行 */
+.err-line {
+  background: var(--danger-veil);
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+.danger-line { background: var(--warn-veil); }
+.danger-line .CodeMirror-gutter-elt { color: var(--warn); }
+
+.CodeMirror-hints {
+  background: var(--panel-2) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px var(--shadow);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px;
+}
+.CodeMirror-hint { color: var(--text) !important; padding: 3px 8px; border-radius: 4px; }
+li.CodeMirror-hint-active { background: var(--accent-bg) !important; color: var(--on-accent) !important; }
+.hint-method { color: var(--faint); }
+.hint-import { color: var(--accent); }
+.hint-kind { color: var(--faint); font-size: 10px; margin-left: 6px; }
+
+/* --------------------------------------------------------------------------
+   二次确认条
+   -------------------------------------------------------------------------- */
+
+.confirm {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border-top: 1px solid var(--danger-line);
+  border-bottom: 1px solid var(--danger-line);
+  background: var(--danger-bg);
+}
+.confirm-text { margin: 0 0 8px; font-size: 12px; color: var(--on-danger); }
+.confirm-text strong { margin-right: 8px; }
+.confirm-row { display: flex; align-items: center; gap: 8px; }
+.confirm-input {
+  width: 220px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--danger-line);
+  border-radius: 5px;
+  background: var(--field-bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.confirm-input:focus { outline: none; border-color: var(--danger); }
+
+/* --------------------------------------------------------------------------
+   输出
+   -------------------------------------------------------------------------- */
+
+.out {
+  flex: 0 0 210px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 30px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  min-height: 0;
+}
+.out-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 11px;
+}
+.out-title { color: var(--muted); letter-spacing: .5px; }
+.out-meta { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.out-body {
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.out-body:focus { outline: none; }
+.out-body .sec { color: var(--accent); }
+.out-body .bad { color: var(--danger); }
+.out-body .good { color: var(--ok); }
+.out-body .dim { color: var(--faint); }
+
+/* --------------------------------------------------------------------------
+   最近执行
+   -------------------------------------------------------------------------- */
+
+.side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 30px minmax(0, 1fr) auto;
+  background: var(--panel);
+  min-height: 0;
+}
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .5px;
+}
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow: auto;
+}
+.history-item {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 4px 8px;
+  padding: 7px 12px;
+  border-left: 2px solid transparent;
+  cursor: default;
+}
+.history-item + .history-item { border-top: 1px solid var(--line-soft); }
+.history-item.is-ok { border-left-color: var(--ok-line); }
+.history-item.is-fail { border-left-color: var(--danger-line); }
+.history-item.is-clickable { cursor: pointer; }
+.history-item.is-clickable:hover { background: var(--panel-2); }
+.h-time { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.h-main { min-width: 0; }
+.h-line1 {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+  overflow: hidden;
+}
+.h-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.h-tag.ok { color: var(--ok); border-color: var(--ok-line); }
+.h-tag.bad { color: var(--danger); border-color: var(--danger-line); }
+.h-tag.warn { color: var(--warn); border-color: var(--warn-line); }
+.h-preview {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+.h-line2 {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-empty {
+  margin: 0;
+  padding: 14px 12px;
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.7;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Toast
+   -------------------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  max-width: 70vw;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 12px;
+  box-shadow: 0 10px 30px var(--shadow);
+  z-index: 50;
+}
+.toast.is-error { border-color: var(--danger-line); color: var(--on-danger); }
+
+/* --------------------------------------------------------------------------
+   窄屏：侧栏收起，输出压到底部
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .body { grid-template-columns: minmax(0, 1fr); }
+  .toolbar { flex: 0 0 auto; flex-wrap: wrap; padding: 6px 12px; row-gap: 6px; }
+  .out { flex-basis: 150px; }
+  .lint { max-width: 100%; }
+  .side { display: none; }
+  /* 状态条在窄屏上换到第二行独占整宽：
+     挤在「品牌 + 用户名」旁边只剩一百来像素，四条 chip 只能看见一条半。
+     独占一行后至少能横向滑动看完，而状态条的每一条都是「连错机器」时的依据。 */
+  .topbar { flex: 0 0 auto; flex-wrap: wrap; padding: 8px 12px; row-gap: 7px; }
+  .chips { order: 3; flex: 1 0 100%; gap: 5px; }
+
+  /* 审计后端、超时、版本属于排查时才看的信息，窄屏上先让位给前三项 */
+  .chips .chip:nth-child(n + 5) { display: none; }
+  .chip { max-width: 190px; }
+}
+
+/* --------------------------------------------------------------------------
+   受限模式：预置脚本目录（替代自由编辑器）
+   -------------------------------------------------------------------------- */
+
+.catalog {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.catalog-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12px;
+  color: var(--muted);
+}
+.catalog-title { font-weight: 600; letter-spacing: .5px; }
+.catalog-risk { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+
+.catalog-list { list-style: none; margin: 0; padding: 4px 0; overflow: auto; }
+.catalog-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  padding: 8px 12px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.catalog-item + .catalog-item { border-top: 1px solid var(--line-soft); }
+.catalog-item:hover { background: var(--panel-2); }
+.catalog-item.is-selected { border-left-color: var(--accent); background: var(--selected-bg); }
+.catalog-item-name { font-size: 13px; color: var(--text); font-weight: 500; }
+.catalog-item-desc {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.catalog-item-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.catalog-empty { margin: 0; padding: 14px 12px; font-size: 11px; color: var(--faint); }
+
+.param-panel {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  padding: 10px 12px;
+  background: var(--panel);
+  overflow: auto;
+  max-height: 52%;
+}
+.param-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.param-script-name { font-size: 13px; font-weight: 600; }
+.param-script-desc { margin: 0 0 10px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+.param-form .field { margin-bottom: 10px; }
+.param-form .field > span { display: block; margin-bottom: 4px; font-size: 11px; color: var(--muted); }
+.param-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.param-input[type="checkbox"] { width: 18px; height: 18px; }
+.param-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-veil);
+}
+.param-help { margin: 4px 0 0; font-size: 11px; color: var(--faint); }

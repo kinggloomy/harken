@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.harlanking</groupId>
+        <artifactId>harken-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>harken-web</artifactId>
+    <name>Harken Web</name>
+    <description>Servlet layer: human console API and physically separated AI read-only API.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.harlanking</groupId>
+            <artifactId>harken-core</artifactId>
+        </dependency>
+
+        <!--
+          servlet-api 必须是 provided：
+          容器运行期自带这份 API，打进 jar 会造成类加载冲突（Servlet 规范明确禁止）。
+          provided 也意味着本模块编译期认识 Servlet，运行期零依赖。
+        -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta-servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>forbid-spring-in-web</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <!-- 与 core 同一条红线：HTTP 层也不许绑框架，否则「非 Spring 可用」是空话 -->
+                                    <excludes>
+                                        <exclude>org.springframework:*</exclude>
+                                        <exclude>org.springframework.boot:*</exclude>
+                                    </excludes>
+                                    <message>
+                                        harken-web 必须保持框架无关（只用 Servlet API）。
+                                        需要 Spring 的东西请放到 harken-spring-boot-starter。
+                                    </message>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
