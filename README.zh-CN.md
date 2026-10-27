@@ -32,6 +32,8 @@ Harken 是给运行中的 Java 应用用的一个网页控制台。打开页面�
 
 **1. 加依赖**
 
+Spring Boot 应用只需要一个依赖：
+
 ```xml
 <dependency>
     <groupId>com.harlanking</groupId>
@@ -39,6 +41,34 @@ Harken 是给运行中的 Java 应用用的一个网页控制台。打开页面�
     <version>1.0.0</version>
 </dependency>
 ```
+
+Gradle 用同一组坐标：
+
+```groovy
+implementation 'com.harlanking:harken-spring-boot-starter:1.0.0'
+```
+
+不用 Spring 的话，引擎、Servlet 层和护栏分开引，再用 `HarkenRuntime.builder()` 组装。`harken-demo-library` 就是这种用法，跑在内嵌 Tomcat 上。
+
+```xml
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-web</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-jdbc</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+5 个库模块都在 Maven Central 的 `com.harlanking` 下，同一版本一起发布：[central.sonatype.com/artifact/com.harlanking](https://central.sonatype.com/artifact/com.harlanking/harken-spring-boot-starter)。
 
 **2. 配置 Bean 扫描包和登录账号**
 

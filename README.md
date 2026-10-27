@@ -32,6 +32,8 @@ It is built for questions like "why is this order still `NEW` in production". Th
 
 **1. Add the dependency**
 
+For a Spring Boot application, one dependency:
+
 ```xml
 <dependency>
     <groupId>com.harlanking</groupId>
@@ -39,6 +41,34 @@ It is built for questions like "why is this order still `NEW` in production". Th
     <version>1.0.0</version>
 </dependency>
 ```
+
+The same coordinates in Gradle:
+
+```groovy
+implementation 'com.harlanking:harken-spring-boot-starter:1.0.0'
+```
+
+Without Spring, take the engine, the servlet layer and the guards separately, then build the runtime with `HarkenRuntime.builder()`. `harken-demo-library` is a working example of this setup, running on embedded Tomcat.
+
+```xml
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-web</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-jdbc</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+All five library modules are on Maven Central under `com.harlanking`, published together at one version: [central.sonatype.com/artifact/com.harlanking](https://central.sonatype.com/artifact/com.harlanking/harken-spring-boot-starter).
 
 **2. Set the bean packages and a login**
 
