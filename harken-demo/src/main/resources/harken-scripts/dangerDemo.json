@@ -1,0 +1,8 @@
+{
+  "id": "dangerDemo",
+  "name": "危险操作演示",
+  "description": "DANGEROUS 级：例如执行 DDL。受限模式默认 max-risk=WRITE，这条不会出现在列表里。",
+  "risk": "DANGEROUS",
+  "commitAllowed": false,
+  "script": "return \"（演示 DANGEROUS）例如 TRUNCATE / 删表。受限模式默认不显示。\""
+}

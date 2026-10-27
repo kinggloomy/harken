@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.harlanking</groupId>
+        <artifactId>harken-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>harken-demo-library</artifactId>
+    <name>harken-demo-library</name>
+    <description>Library 形态验收：纯 Java main（无 Spring）+ 嵌入式 Tomcat + 受限模式 + FileScriptCatalog</description>
+
+    <!--
+      这个模块故意不依赖 Spring Boot。它要证明的是：Harken 的核心 API
+      （HarkenRuntime.builder().catalog(...)）在「没有框架」的环境里也能用 ——
+      自己 new 一个嵌入式 Tomcat，把 harken-web 的 servlet 挂上去，控制台照样能跑。
+
+      运行：mvn -pl harken-demo-library exec:java -Dexec.args="scripts 8090"
+      第一个参数是脚本目录（FileScriptCatalog 读取），第二个是端口。
+    -->
+
+    <dependencies>
+        <!-- 核心 + Web + JDBC 守卫，三件套 -->
+        <dependency>
+            <groupId>com.harlanking</groupId>
+            <artifactId>harken-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.harlanking</groupId>
+            <artifactId>harken-web</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.harlanking</groupId>
+            <artifactId>harken-jdbc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 嵌入式 Servlet 容器：jakarta servlet 6.0，与 harken-web 编译用的版本一致 -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>10.1.33</version>
+        </dependency>
+
+        <!-- 内存库：给事务桥一个真实连接，让试跑/提交走完整事务语义 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+        </dependency>
+
+        <!-- 日志绑定（core 只依赖 slf4j-api） -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <mainClass>com.harlanking.demo.lib.LibraryDemoMain</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,93 @@
+# ============================================================================
+#  三分钟可用的全部内容，就是下面 harken 这一节（3 行有效配置）。
+#  其余都是普通 Spring Boot 应用的常规配置，跟 Harken 无关。
+# ============================================================================
+harken:
+  # 脚本里能直接点到的 Bean 限定在这个包下。不配也能跑，但补全列表里会混进
+  # 数据源、连接池这些噪音 —— 启动日志会 WARN 提醒你。
+  packages:
+    - com.harlanking.demo
+  # 单次执行硬超时。阻塞且不可中断的调用拦不住，这是尽力而为的语义。
+  timeout-ms: 10000
+
+  # 预置脚本目录：classpath 下 harken-scripts/*.json。FULL 模式下这些脚本会作为
+  # 可插入编辑器的模板出现在「模板」下拉里；受限模式（mode=RESTRICTED）下它们才是
+  # 用户界面上唯一能选的东西。这里保持 FULL，方便 M3 的自由编辑冒烟继续有效。
+  catalog:
+    provider: classpath
+    max-risk: WRITE
+
+  # 数据保护。这两节是「能回滚、能追溯」之外最实用的部分：
+  # 事务能保证不提交就回滚，但它拦不住「提交之后才发现改了八万行」。
+  guard:
+    # 一次执行最多改 2 行。演示里「不写 where 改全表」会在执行途中被拦下并回滚。
+    # 真实项目按业务量调，0 表示不限（不推荐）。
+    max-affected-rows: 2
+    # 关键表黑名单：写被拒、读照常。真实系统里这里应该是订单主表、资金流水、库存台账。
+    deny-tables:
+      - supply_order
+    # 结构变更一律拒绝：紧急加字段请走发布流程，不要在控制台里顺手 alter。
+    deny-ddl: true
+
+  audit:
+    jdbc:
+      # 审计同时写日志与数据库表。脚本回滚后表里的记录仍然存在，
+      # 这正是「被拦下的那一次最需要查」的落地方式。
+      enabled: true
+      table: harken_audit
+      auto-create: true
+    memory:
+      # 环形缓冲：给控制台的「最近执行」面板用（HarkenService#recentAudits）。
+      # 默认就是 true，写在这里是为了让你看见「审计其实有两条通道」。
+      # 零建表、零权限，但重启即失、多实例各一份 —— 只当窗口，不当证据。
+      enabled: true
+      capacity: 200
+
+  web:
+    # 显示在控制台顶部的状态条上。存在的唯一意义是「让人确认自己连的是哪台机器」，
+    # 所以它绝不会被自动推断 —— 猜出来的值在真出问题时一定是错的。
+    environment: demo-local
+    # 只允许本机访问。要放开必须显式改这里 —— 这个「必须显式」就是安全边界。
+    allowed-ips:
+      - 127.0.0.1
+      - ::1
+    # 两个账号：一个能提交，一个只能试跑。
+    # 注意：这里是明文密码，启动日志会 WARN —— 那是刻意的，用来演示
+    # 生产环境应该写成 env:HARKEN_ADMIN_PASSWORD 或 PBKDF2 哈希串。
+    users:
+      - username: admin
+        password: demo-admin-pw
+        role: ADMIN
+      - username: reader
+        password: demo-reader-pw
+        role: READONLY
+
+  ai:
+    # 配了 token，/harken/ai/** 才会被注册。删掉这一行端点就不存在了。
+    token: demo-ai-token
+
+spring:
+  application:
+    name: harken-demo
+  main:
+    banner-mode: off
+  datasource:
+    # 内存库，重启即恢复初始数据；DB_CLOSE_DELAY=-1 让连接池回收连接后库还在
+    url: jdbc:h2:mem:harken;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+demo:
+  # 演示脚本跑完是否退出进程。本地看效果建议 true，接着做 M2 的 HTTP 层时改 false
+  exit-after: false
+
+logging:
+  level:
+    root: info
+    # Harken 的审计默认走 slf4j，把它的 logger 单独开着才看得到审计记录长什么样
+    com.harlanking.harken.core.impl.Slf4jAuditStore: info

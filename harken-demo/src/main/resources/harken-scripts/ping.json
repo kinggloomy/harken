@@ -1,0 +1,8 @@
+{
+  "id": "ping",
+  "name": "连通性自检",
+  "description": "返回一个带当前时间的心跳串，用来确认控制台能连上、脚本能跑。",
+  "risk": "READ",
+  "commitAllowed": false,
+  "script": "return \"pong @ \" + java.time.LocalTime.now()"
+}

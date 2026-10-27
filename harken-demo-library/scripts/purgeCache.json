@@ -1,0 +1,8 @@
+{
+  "id": "purgeCache",
+  "name": "清空缓存（危险）",
+  "description": "DANGEROUS 级：例如 TRUNCATE / 删表。受限模式 max-risk=WRITE，这条不会出现在列表里。",
+  "risk": "DANGEROUS",
+  "commitAllowed": false,
+  "script": "return \"（演示 DANGEROUS）清空缓存。受限模式默认不显示，避免误操作。\""
+}

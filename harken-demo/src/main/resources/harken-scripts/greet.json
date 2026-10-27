@@ -1,0 +1,12 @@
+{
+  "id": "greet",
+  "name": "问候（带参数）",
+  "description": "演示受限模式的参数表单：填称呼、可选是否大写。",
+  "risk": "READ",
+  "commitAllowed": false,
+  "params": [
+    { "name": "name", "type": "string", "required": true, "label": "称呼", "description": "要问候谁" },
+    { "name": "loud", "type": "boolean", "required": false, "label": "大写", "description": "是否转成大写" }
+  ],
+  "script": "def msg = \"你好，${params.name}\"\nif (params.loud) msg = msg.toUpperCase()\nreturn msg"
+}

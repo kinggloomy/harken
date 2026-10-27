@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.harlanking</groupId>
+        <artifactId>harken-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>harken-demo</artifactId>
+    <name>harken-demo</name>
+    <description>Accepts one dependency, one property, then scripts can call your beans. H2 + real JDBC transaction.</description>
+
+    <!--
+      这是「三分钟可用」的验收载体，不是 Harken 的一部分。
+      刻意做得像一个普通的业务应用：Spring Boot + JDBC + 一个 Service + 一张表。
+      除了 harken-spring-boot-starter 这一个依赖和 application.yml 里的三行配置，
+      业务代码里没有任何一行是为 Harken 写的。
+    -->
+
+    <dependencyManagement>
+        <dependencies>
+            <!--
+              父 POM 没有继承 spring-boot-starter-parent（Harken 本身不能依赖 Boot），
+              所以 demo 自己导入 Boot 的 BOM 拿版本号，避免手写一堆 <version>。
+            -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- 唯一需要加的依赖。它会把 harken-spring、harken-core、groovy 一起带进来 -->
+        <dependency>
+            <groupId>com.harlanking</groupId>
+            <artifactId>harken-spring-boot-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!--
+          Web 容器：M2 的 HTTP 端点需要它。
+          注意 harken-web 本身只依赖 Servlet API（provided），
+          容器由使用者的应用提供 —— 这正是「非 Spring 应用也能用」的前提。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+          JDBC + 连接池：这不是 Harken 的依赖，而是为了让 demo 有一个真实的事务管理器。
+          Harken 的写能力完全建立在「容器里有 PlatformTransactionManager」之上。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+          只在 PostgresTransactionTest 里用。那个测试默认跳过（没有 HARKEN_PG_URL 时），
+          所以驱动是 test 作用域、不污染运行时。
+        -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

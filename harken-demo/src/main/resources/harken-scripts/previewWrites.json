@@ -1,0 +1,11 @@
+{
+  "id": "previewWrites",
+  "name": "预演写入影响（不真正落库）",
+  "description": "演示 WRITE 级脚本：试跑能看到影响行数，但 commitAllowed=false，受限模式没有提交按钮。",
+  "risk": "WRITE",
+  "commitAllowed": false,
+  "params": [
+    { "name": "rows", "type": "number", "required": true, "label": "预计影响行数", "defaultValue": "10" }
+  ],
+  "script": "return \"（演示 WRITE）预计影响 \" + params.rows + \" 行；受限模式不允许提交，试跑后自动回滚。\""
+}

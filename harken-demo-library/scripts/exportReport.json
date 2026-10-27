@@ -1,0 +1,11 @@
+{
+  "id": "exportReport",
+  "name": "导出报表（可提交）",
+  "description": "WRITE 级脚本，commitAllowed=true：试跑看影响，确认后可提交。演示受限模式下的完整提交流程。",
+  "risk": "WRITE",
+  "commitAllowed": true,
+  "params": [
+    { "name": "days", "type": "number", "required": true, "label": "统计天数", "defaultValue": "7", "description": "导出最近多少天" }
+  ],
+  "script": "return \"将导出最近 \" + params.days + \" 天的报表（演示），提交后事务真正落库。\""
+}

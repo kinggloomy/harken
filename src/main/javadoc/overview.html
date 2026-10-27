@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Harken API</title>
+</head>
+<body>
+
+<h1>Harken — 运行时脚本控制台</h1>
+
+<p>
+    Harken 让一个<strong>正在运行的 Java 应用</strong>可以在不重启、不重新部署的前提下执行一段
+    Groovy 脚本，读取容器里的任意 Bean、验证线上假设、订正错误数据。它对标 SAP Hybris HAC 的
+    Scripting 页面，但把安全模型建立在「事务回滚 + 审计 + 访问控制」上，而不是不可靠的沙箱。
+</p>
+
+<h2>一句话理解实现原理</h2>
+
+<p>
+    Groovy 把「编译」从构建期挪到了运行期：{@code GroovyClassLoader.parseClass(source)}
+    产出的就是一个普通的 JVM 类，和你的业务类在同一个 ClassLoader、同一个类型系统里。
+    所以脚本能 {@code new} 你的对象、实现你的接口、通过 {@code ctx.getBean()} 拿到真实
+    （不是代理）的 Spring Bean。没有跨进程、没有额外协议、没有序列化边界。
+</p>
+
+<h2>模块与阅读顺序</h2>
+
+<table border="1" cellpadding="6" cellspacing="0">
+    <tr>
+        <th align="left">模块</th>
+        <th align="left">职责</th>
+        <th align="left">先读哪个包</th>
+    </tr>
+    <tr>
+        <td><code>harken-core</code></td>
+        <td>零框架依赖：编译、缓存、绑定、超时、审计、事务 SPI。此模块<strong>不含任何 Spring 代码</strong>。</td>
+        <td>{@link com.harlanking.harken.core} 与 {@link com.harlanking.harken.core.spi}</td>
+    </tr>
+    <tr>
+        <td><code>harken-spring</code></td>
+        <td>Spring 适配：Bean 解析、事务桥、Bean 元数据扫描（供补全与 AI 能力清单使用）。</td>
+        <td>{@link com.harlanking.harken.spring}</td>
+    </tr>
+    <tr>
+        <td><code>harken-spring-boot-starter</code></td>
+        <td>自动配置：加一个依赖就能用。</td>
+        <td>—</td>
+    </tr>
+</table>
+
+<h2>两条执行通道（核心安全设计）</h2>
+
+<p>
+    请求类型是 {@code sealed} 的，分成两种：{@link com.harlanking.harken.core.api.ReadOnlyRequest}
+    没有任何写入口，{@link com.harlanking.harken.core.api.ReadWriteRequest} 才带 {@code commit}。
+    因此「AI 修改数据」在<strong>编译期</strong>就不成立，而不是靠运行时 if 判断。
+</p>
+
+<h2>三条不可动摇的顺序</h2>
+
+<ol>
+    <li>审计必须写在事务之外——否则脚本回滚时，审计记录跟着消失，而「被回滚的那次」最需要审计。</li>
+    <li>事务必须在执行脚本的<strong>那个线程</strong>里开——Spring 事务绑定 ThreadLocal，跨线程开事务等于没开。</li>
+    <li>截断必须发生在审计之前——审计只存摘要，不存完整返回值。</li>
+</ol>
+
+<h2>安全边界（请先读这段再使用）</h2>
+
+<p>
+    <strong>Harken 不是沙箱。</strong>脚本与业务代码处于同一 JVM、同一 ClassLoader、同一权限上下文，
+    没有技术能在同一进程内做隔离（JDK 24 起 {@code SecurityManager} 已被永久移除）。
+    Harken 提供的是<strong>可回滚 + 可追溯 + 可拒绝</strong>，不是不可突破的隔离。
+    不要把它暴露到公网；默认部署姿态是绑定 {@code 127.0.0.1} + SSH 隧道。
+</p>
+
+<p>
+    详细的威胁模型与已知限制见仓库 <code>SECURITY.md</code>，需求与里程碑见 <code>DEVELOPMENT-PLAN.md</code>，
+    当前进度见 <code>DEV-PROGRESS.md</code>。
+</p>
+
+</body>
+</html>

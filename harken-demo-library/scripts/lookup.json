@@ -1,0 +1,11 @@
+{
+  "id": "lookup",
+  "name": "按编号查询（带参数）",
+  "description": "READ 级脚本，演示参数表单：填一个编号，返回一段查询结果串。",
+  "risk": "READ",
+  "commitAllowed": false,
+  "params": [
+    { "name": "code", "type": "string", "required": true, "label": "编号", "description": "要查的业务编号" }
+  ],
+  "script": "return \"查到 code=\" + params.code + \" @ \" + java.time.LocalDate.now()"
+}
