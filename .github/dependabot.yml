@@ -1,0 +1,71 @@
+version: 2
+
+# Weekly dependency checks.
+#
+# Two ecosystems, because GitHub Actions versions go stale just as fast as
+# library versions and nobody notices until a workflow breaks.
+#
+# The grouping is the part that matters. Without it, Spring's five modules
+# arrive as five separate pull requests that each fail CI on their own
+# because the versions no longer line up with each other.
+
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      # Spring Framework and Spring Boot must move together. Splitting them
+      # produces pull requests that cannot compile on their own.
+      spring:
+        patterns:
+          - "org.springframework*"
+
+      # Test-only dependencies, safe to upgrade as a pack.
+      test:
+        patterns:
+          - "org.junit*"
+          - "org.assertj*"
+          - "com.h2database*"
+
+      # Everything else: one pull request per week instead of one per artifact.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Spring 6 to 7 and Boot 3 to 4 are migrations with their own checklist,
+      # not something a dependency bot should decide the timing of.
+      - dependency-name: "org.springframework*"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      # checkout, setup-java and upload-artifact are used in the same workflow,
+      # so they arrive as one bump.
+      actions:
+        patterns:
+          - "*"

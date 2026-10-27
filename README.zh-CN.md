@@ -2,6 +2,7 @@
 
 [English](README.md) | **简体中文**
 
+[![build](https://github.com/kinggloomy/harken/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kinggloomy/harken/actions/workflows/build.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.harlanking/harken-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/com.harlanking/harken-spring-boot-starter)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](#环境要求)
