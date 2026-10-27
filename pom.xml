@@ -80,7 +80,7 @@
           换成 11.x 会改变 Servlet 规范版本，不在补丁级别内做这件事。
         -->
         <tomcat.version>10.1.61</tomcat.version>
-        <junit.version>5.12.2</junit.version>
+        <junit.version>6.1.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
         <!-- 只在 harken-jdbc 的测试里用，运行期不带任何数据库驱动 -->
         <h2.version>2.2.224</h2.version>
