@@ -1,0 +1,2 @@
+com.harlanking.harken.spring.boot.HarkenAutoConfiguration
+com.harlanking.harken.spring.boot.HarkenWebAutoConfiguration
