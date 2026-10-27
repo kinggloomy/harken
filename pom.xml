@@ -67,7 +67,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <groovy.version>4.0.33</groovy.version>
+        <groovy.version>6.0.0</groovy.version>
         <slf4j.version>2.0.18</slf4j.version>
         <!-- Boot 3.5.x 的容器实现的仍是 Servlet 6.0（6.1 要 Tomcat 11） -->
         <jakarta-servlet.version>6.0.0</jakarta-servlet.version>
