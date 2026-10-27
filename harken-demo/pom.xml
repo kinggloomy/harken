@@ -34,6 +34,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!--
+              BOM 里 Tomcat 是 10.1.55，抬到父 POM 定的版本。
+              直接声明的条目优先于 import 的 BOM，所以这条覆盖生效；
+              和 harken-demo-library 里那个显式依赖保持同一版本。
+            -->
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

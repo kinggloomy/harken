@@ -41,11 +41,12 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- 嵌入式 Servlet 容器：jakarta servlet 6.0，与 harken-web 编译用的版本一致 -->
+        <!-- 嵌入式 Servlet 容器：jakarta servlet 6.0，与 harken-web 编译用的版本一致。
+             版本统一由父 POM 的 tomcat.version 控制，与 demo 模块保持一致。 -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>10.1.33</version>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <!-- 内存库：给事务桥一个真实连接，让试跑/提交走完整事务语义 -->
