@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.harlanking</groupId>
+    <artifactId>harken-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Harken</name>
+    <description>Runtime console for Java applications: execute Groovy against live beans inside a
+        rollback-able transaction, with an audit trail and a read-only AI channel.
+    </description>
+    <url>https://harken.harlanking.com</url>
+    <inceptionYear>2026</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- Maven Central 的硬性要求：没有 developers 与 scm，校验直接失败 -->
+    <developers>
+        <developer>
+            <id>harlanking</id>
+            <name>Harlan</name>
+            <email>me@jintienan.com</email>
+            <url>https://harlanking.com</url>
+            <timezone>Asia/Shanghai</timezone>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/kinggloomy/harken.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/kinggloomy/harken.git</developerConnection>
+        <url>https://github.com/kinggloomy/harken</url>
+        <tag>v${project.version}</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/kinggloomy/harken/issues</url>
+    </issueManagement>
+
+    <modules>
+        <module>harken-core</module>
+        <module>harken-jdbc</module>
+        <module>harken-web</module>
+        <module>harken-spring</module>
+        <module>harken-spring-boot-starter</module>
+        <module>harken-demo</module>
+        <module>harken-demo-library</module>
+    </modules>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <groovy.version>4.0.33</groovy.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <!-- Boot 3.3.x 的容器实现的正是 Servlet 6.0 -->
+        <jakarta-servlet.version>6.0.0</jakarta-servlet.version>
+        <!-- Boot 3.3.5 对应的 Spring Framework 版本就是 6.1.14，两者必须对齐 -->
+        <spring.version>6.1.14</spring.version>
+        <spring-boot.version>3.3.5</spring-boot.version>
+        <junit.version>5.10.2</junit.version>
+        <assertj.version>3.25.3</assertj.version>
+        <!-- 只在 harken-jdbc 的测试里用，运行期不带任何数据库驱动 -->
+        <h2.version>2.2.224</h2.version>
+
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+        <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <central-publishing-plugin.version>0.12.0</central-publishing-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.harlanking</groupId>
+                <artifactId>harken-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.harlanking</groupId>
+                <artifactId>harken-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.harlanking</groupId>
+                <artifactId>harken-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-json</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <!-- ServletRegistrationBean / FilterRegistrationBean 在这个 artifact 里 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-test</artifactId>
+                <version>${spring-boot.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- spring-boot-test 的 ApplicationContextRunner 依赖 AssertJ 的 AssertProvider -->
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <!-- 保留方法参数名，AI/反射元数据需要 -->
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!--
+              环境基线：写在这里而不是靠文档口口相传。
+              「支持 JDK 17+」如果只在 README 里写，第一个用 JDK 11 编译的人会得到
+              一句「用新 API 就不行」的编译错误，而不是「你的 JDK 太老」。
+              规则在 validate 阶段跑，比编译更早，失败信息也更直白。
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <inherited>true</inherited>
+                <executions>
+                    <execution>
+                        <id>baseline-jdk-and-maven</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,)</version>
+                                    <message>
+                                        Harken 的基线是 JDK 17（文本块、record、sealed 都用到了）。
+                                        实测覆盖 17 / 21 / 25 三套 JDK。
+                                    </message>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[3.6,)</version>
+                                    <message>请使用 Maven 3.6 及以上版本。</message>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              sources jar 一直产出（不进 profile）：IDE 点进依赖源码、Maven Central 校验都要求它，
+              而它的成本只是打一次 zip。
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              Javadoc 配置放在父 POM 的 <plugins> 里（不是 pluginManagement），
+              所有子模块自动继承，因此下面两条命令在任何子模块目录下都能直接用：
+
+                mvn javadoc:javadoc     → 单模块 HTML，输出 target/site/apidocs
+                mvn javadoc:aggregate   → 全模块合并 HTML（在根目录跑）
+
+              只在 -Pdocs 时才额外产出 javadoc jar（避免日常 package 变慢）。
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <!-- 中文注释必须三件套都设，少一个就出乱码 -->
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
+
+                    <!-- 关闭 doclint：它会对中文标点、@param 顺序报一堆噪音警告 -->
+                    <doclint>none</doclint>
+                    <failOnWarnings>false</failOnWarnings>
+                    <quiet>true</quiet>
+                    <notimestamp>true</notimestamp>
+
+                    <windowtitle>Harken ${project.version} API</windowtitle>
+                    <doctitle>Harken ${project.version} API</doctitle>
+                    <bottom><![CDATA[
+                        <span style="font-size:12px">
+                        Harken — runtime console for Java applications.
+                        Licensed under the Apache License, Version 2.0.
+                        </span>
+                    ]]></bottom>
+
+                    <overview>${basedir}/src/main/javadoc/overview.html</overview>
+
+                    <links>
+                        <link>https://docs.oracle.com/en/java/javase/17/docs/api/</link>
+                    </links>
+
+                    <!-- 中文注释里出现 {@code while(true) {}} 这类片段时不要当 HTML 解析 -->
+                    <additionalOptions>
+                        <additionalOption>-Xdoclint:none</additionalOption>
+                    </additionalOptions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+          发布用：产出 -javadoc.jar 与可拷贝的 HTML 站点。
+            mvn -Pdocs clean package     → 每模块 target/*-javadoc.jar
+            mvn -Pdocs javadoc:aggregate → 根目录 target/site/apidocs
+        -->
+        <profile>
+            <id>docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+          发布到 Maven Central（Sonatype Central Portal）。三条前置条件写在 RELEASING.md，
+          这里只放「怎么发」：
+
+            mvn -Prelease clean deploy
+
+          刻意不让它默认生效：deploy 是会对外留痕的动作，必须显式要求。
+          刻意设 autoPublish=false：bundle 上传后在 central.sonatype.com 停在「已验证」状态，
+          人可以最后看一眼清单再点 Publish —— 名字、版本、模块少一个都还能撤。
+        -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- Central 校验规则：每个构件都必须有 -sources.jar 与 -javadoc.jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!--
+                              loopback + batch：让口令从 settings.xml 里的 <gpg.passphrase> 读，
+                              而不是弹一个只能由人手敲的 pinentry。没有这两项，CI 里必然卡死，
+                              本地也会在构建中途停下来等输入。
+                            -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                                <arg>--batch</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                            <deploymentName>harken-${project.version}</deploymentName>
+                            <!--
+                              两个 demo 是「能跑起来的样品」，不是库：
+                              harken-demo 被 spring-boot-maven-plugin 重打包过，当依赖用会坏；
+                              而且它们没有对外 API 承诺。按 artifactId 排除（插件只认这个名字）。
+                            -->
+                            <excludeArtifacts>
+                                <excludeArtifact>harken-demo</excludeArtifact>
+                                <excludeArtifact>harken-demo-library</excludeArtifact>
+                            </excludeArtifacts>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

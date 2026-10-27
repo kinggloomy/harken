@@ -1,0 +1,38 @@
+# ---- 构建产物 ----
+target/
+*.class
+
+# ---- 生成的 API 文档（按需生成，不入库）----
+docs/api/
+
+# ---- 依赖 ----
+node_modules/
+.mvn/
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# ---- 运行期产物 ----
+*.log
+logs/
+*.mv.db
+*.trace.db
+harken-audit*.db
+
+# ---- 本机私密配置 ----
+.env
+*.local
+settings-private.xml
+.workbuddy/
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db
+desktop.ini

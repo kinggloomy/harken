@@ -1,0 +1,26 @@
+# 统一换行符策略
+#
+# 存在的理由：`http-smoke.sh` 曾在 Windows 上用 CRLF 提交，本地 Git Bash 能跑，
+# 推到 Linux 后第一行就报 `$'\r': command not found` —— 这类缺陷本地永远复现不了。
+# 所有脚本类文件强制 LF，不管在哪个平台 checkout。
+
+* text=auto
+
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.command       text eol=lf
+
+# Windows 上要双击运行/被 cmd 解析的保持 CRLF
+*.cmd           text eol=crlf
+*.bat           text eol=crlf
+
+# 二进制：不要做任何换行转换，也不要被 diff 当文本
+*.jar           binary
+*.png           binary
+*.jpg           binary
+*.gif           binary
+*.ico           binary
+*.woff          binary
+*.woff2         binary
+*.tgz           binary
+*.gz            binary
